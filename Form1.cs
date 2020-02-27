@@ -15,10 +15,12 @@ namespace textEditor
     public partial class Form1 : Form
     {
         String openedFileName;
+        bool fileChanged = false;
         
         public Form1()
         {
             InitializeComponent();
+          
             
         }
 
@@ -29,14 +31,41 @@ namespace textEditor
 
         private void newToolStripButton_Click(object sender, EventArgs e)
         {
-            if (String.IsNullOrWhiteSpace(mainTextArea.Text))
+            if (this.Text != "doc1.txt")
+            {
+                using (StreamReader sr = new StreamReader(openedFileName))
+                {
+
+                    if (mainTextArea.Text != sr.ReadToEnd())
+                    {
+                        fileChanged = true;
+                    }
+
+                    sr.Close();
+                }
+            }
+            if (String.IsNullOrWhiteSpace(mainTextArea.Text) || (fileChanged == false && this.Text != "doc1.txt"))
             {
                 mainTextArea.Clear();
             } else
             {
-                MessageBox.Show("fail");
+                dynamic result = MessageBox.Show("Do you want to save changes to your text?", "Text Editor",
+        MessageBoxButtons.YesNo);
+                    if (result == DialogResult.Yes)
+                    {
+                    saveToolStripButton.PerformClick();
+                }
+
+                if (result == DialogResult.No)
+                {
+                    
+                    mainTextArea.Clear();
+                }
             }
+            fileChanged = false;
+            this.Text = "doc1.txt";
         }
+        
 
         private void openToolStripButton_Click(object sender, EventArgs e)
         {
@@ -44,6 +73,7 @@ namespace textEditor
             openfile.Title = "Open file";
             if (openfile.ShowDialog() == DialogResult.OK)
             {
+                fileChanged = false;
                 mainTextArea.Clear();
                 using (StreamReader sr = new StreamReader(openfile.FileName))
                 {
@@ -57,9 +87,11 @@ namespace textEditor
 
         private void saveToolStripButton_Click(object sender, EventArgs e)
         {
-           if (this.Text == "doc1.txt")
+            fileChanged = false;
+            if (this.Text == "doc1.txt")
             {
                 saveAsToolStripMenuItem.PerformClick();
+                
             } else
             {
 
@@ -71,6 +103,19 @@ namespace textEditor
             
             
            
+        }
+        private void saveAsToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            SaveFileDialog savefile = new SaveFileDialog();
+            savefile.Title = "Save file as";
+            if (savefile.ShowDialog() == DialogResult.OK)
+            {
+                fileChanged = false;
+                StreamWriter txt = new StreamWriter(savefile.FileName);
+                txt.Write(mainTextArea.Text);
+                txt.Close();
+
+            }
         }
 
         private void cutToolStripMenuItem_Click(object sender, EventArgs e)
@@ -113,23 +158,16 @@ namespace textEditor
             openToolStripButton.PerformClick();
         }
 
-        private void saveAsToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            SaveFileDialog savefile = new SaveFileDialog();
-            savefile.Title = "Save file as";
-            if (savefile.ShowDialog() == DialogResult.OK)
-            {
-
-                StreamWriter txt = new StreamWriter(savefile.FileName);
-                txt.Write(mainTextArea.Text);
-                txt.Close();
-
-            }
-        }
 
         private void saveToolStripMenuItem_Click(object sender, EventArgs e)
         {
             saveToolStripButton.PerformClick();
+        }
+
+
+        private void panel1_Paint(object sender, PaintEventArgs e)
+        {
+
         }
     }
 }
