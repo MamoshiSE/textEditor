@@ -8,7 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.IO;
-using System.Text.RegularExpressions;
+
 
 namespace textEditor
 {
@@ -17,25 +17,35 @@ namespace textEditor
     {
         String openedFilePath;
         String openedFileName;
-        bool fileChanged = false;
-        String cWithSpace = "0";
-        String cNoSpace = "0";
+        public bool fileChanged = false;
+       
+        public static Form1 form1;
+
 
 
         public Form1()
         {
             InitializeComponent();
-          
+            mainTextArea.AllowDrop = true;
+            mainTextArea.DragDrop += new DragEventHandler(mainTextArea_DragDrop);
+            form1 = this;
             
-        }
-        private void Form1_Load(object sender, EventArgs e)
-        {
 
         }
-
-        private void fileToolStripMenuItem_Click(object sender, EventArgs e)
+        void mainTextArea_DragDrop(object sender, DragEventArgs e)
         {
+            object filename = e.Data.GetData("FileDrop");
+            if (filename != null)
+            {
+                var list = filename as string[];
 
+                if (list != null && !string.IsNullOrWhiteSpace(list[0]))
+                {
+                    mainTextArea.Clear();
+                    mainTextArea.LoadFile(list[0], RichTextBoxStreamType.PlainText);
+                }
+
+            }
         }
 
         private void newToolStripButton_Click(object sender, EventArgs e)
@@ -47,9 +57,13 @@ namespace textEditor
             {
                 mainTextArea.Clear();
                 this.Text = "doc1.txt";
-            } else
+            }
+            else
             {
-                dynamic result = MessageBox.Show("Do you want to save changes to your text?", "Text Editor",
+                Form2 f2 = new Form2(form1);
+                f2.ShowDialog(); // Shows Form2
+
+                /*dynamic result = MessageBox.Show("Do you want to save changes to your text?", "Text Editor",
         MessageBoxButtons.YesNo);
                     if (result == DialogResult.Yes)
                     {
@@ -63,29 +77,38 @@ namespace textEditor
                     fileChanged = false;
                     this.Text = "doc1.txt";
                 }
-            }
-            
-        }
-        
+            } */
 
-        private void openToolStripButton_Click(object sender, EventArgs e)
+            }
+        }
+      
+
+            private void openToolStripButton_Click(object sender, EventArgs e)
         {
+           /* checkFileChanged();
+
+            if (fileChanged = true)
+            {
+                Form2 f2 = new Form2(form1);
+                f2.ShowDialog();
+            } */
             OpenFileDialog openfile = new OpenFileDialog();
             openfile.Title = "Open file";
-            if (openfile.ShowDialog() == DialogResult.OK)
-            {
-                
-                mainTextArea.Clear();
-                using (StreamReader sr = new StreamReader(openfile.FileName))
+                if (openfile.ShowDialog() == DialogResult.OK)
                 {
-                    this.Text = openfile.SafeFileName + ".txt";
-                    openedFileName = this.Text;
-                    openedFilePath = openfile.FileName;
-                    mainTextArea.Text = sr.ReadToEnd();
-                    fileChanged = false;
-                    sr.Close();
+
+                    mainTextArea.Clear();
+                    using (StreamReader sr = new StreamReader(openfile.FileName))
+                    {
+                        this.Text = openfile.SafeFileName + ".txt";
+                        openedFileName = this.Text;
+                        openedFilePath = openfile.FileName;
+                        mainTextArea.Text = sr.ReadToEnd();
+                        fileChanged = false;
+                        sr.Close();
+                    }
                 }
-            }
+            
         }
 
         private void saveToolStripButton_Click(object sender, EventArgs e)
@@ -115,12 +138,32 @@ namespace textEditor
             {
                 
                 StreamWriter txt = new StreamWriter(savefile.FileName);
+                FileInfo t = new FileInfo(savefile.FileName); // in order to get name without full path
                 txt.Write(mainTextArea.Text);
                 fileChanged = false;
+                this.Text = t.Name + ".txt";
+                openedFileName = this.Text;
+                openedFilePath = savefile.FileName;
+                
                 txt.Close();
 
             }
         }
+
+        // used to make method accesable in other form
+        public void savePerformClick()
+        {
+            saveAsToolStripMenuItem.PerformClick();
+        }
+
+        // used to make method accesable in other form
+        public void dontSaveClick()
+        {
+            mainTextArea.Clear();
+            fileChanged = false;
+        }
+
+       
 
         private void cutToolStripMenuItem_Click(object sender, EventArgs e)
         {
@@ -169,11 +212,6 @@ namespace textEditor
         }
 
 
-        private void panel1_Paint(object sender, PaintEventArgs e)
-        {
-
-        }
-
         private void checkFileChanged()
         {
             // Checking if a file is open, if so - checking for changes in the file.
@@ -214,21 +252,59 @@ namespace textEditor
             {
                 this.Text = "doc1.txt";
             }
-           
-            charWithSpace.Text = "Char with space: " + mainTextArea.Text.Length.ToString();
-            charNoSpace.Text = "Char no space: " + mainTextArea.Text.Count(c => !Char.IsWhiteSpace(c)).ToString(); 
-            amountOfWords.Text = "Words: " + mainTextArea.Text.Split(' ').Count();
-            amountOfRows.Text = "Rows: " + mainTextArea.Lines.Count().ToString();
+
+            charWithSpace.Text = "Char with space: " + mainTextArea.Text.Count();
+            charNoSpace.Text = "Char no space: " + mainTextArea.Text.Count(c => !Char.IsWhiteSpace(c)).ToString();
+            amountOfWords.Text = "Words: " + (mainTextArea.Text.Split(new char[] { ' ', '\n' }, StringSplitOptions.RemoveEmptyEntries).Length).ToString();
+            int rowAmount = mainTextArea.GetLineFromCharIndex(mainTextArea.TextLength) + 1; // to avoid setting wrapping to false;
+            amountOfRows.Text = "Rows: " + rowAmount;
         }
 
-        private void toolStrip2_ItemClicked(object sender, ToolStripItemClickedEventArgs e)
+
+        private void Form1_FormClosing(object sender, FormClosingEventArgs e)
         {
-
+            newToolStripButton.PerformClick();
         }
 
-        private void charWithSpace_Click(object sender, EventArgs e)
+     
+
+        private void fileToolStripMenuItem_DropDownClosed(object sender, EventArgs e)
         {
-           
+            fileToolStripMenuItem.ForeColor = Color.White;
         }
+
+        private void fileToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            fileToolStripMenuItem.ForeColor = Color.Black;
+        }
+
+        private void fileToolStripMenuItem_MouseEnter(object sender, EventArgs e)
+        {
+            fileToolStripMenuItem.ForeColor = Color.Black;
+        }
+
+        private void editToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            editToolStripMenuItem.ForeColor = Color.Black;
+        }
+
+        private void editToolStripMenuItem_MouseEnter(object sender, EventArgs e)
+        {
+            editToolStripMenuItem.ForeColor = Color.Black;
+        }
+
+        private void editToolStripMenuItem_DropDownClosed(object sender, EventArgs e)
+        {
+            editToolStripMenuItem.ForeColor = Color.White;
+        }
+
+        private void Form1_Load(object sender, EventArgs e)
+        {
+            mainTextArea.AllowDrop = true;
+            
+        }
+
+       
+       
     }
 }
