@@ -8,20 +8,29 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.IO;
+using System.Text.RegularExpressions;
 
 namespace textEditor
 {
    
     public partial class Form1 : Form
     {
+        String openedFilePath;
         String openedFileName;
         bool fileChanged = false;
-        
+        String cWithSpace = "0";
+        String cNoSpace = "0";
+
+
         public Form1()
         {
             InitializeComponent();
           
             
+        }
+        private void Form1_Load(object sender, EventArgs e)
+        {
+
         }
 
         private void fileToolStripMenuItem_Click(object sender, EventArgs e)
@@ -31,22 +40,13 @@ namespace textEditor
 
         private void newToolStripButton_Click(object sender, EventArgs e)
         {
-            if (this.Text != "doc1.txt")
-            {
-                using (StreamReader sr = new StreamReader(openedFileName))
-                {
+            checkFileChanged();
 
-                    if (mainTextArea.Text != sr.ReadToEnd())
-                    {
-                        fileChanged = true;
-                    }
-
-                    sr.Close();
-                }
-            }
-            if (String.IsNullOrWhiteSpace(mainTextArea.Text) || (fileChanged == false && this.Text != "doc1.txt"))
+            // If there is no changes or the document is empty, start new blank page.
+            if (fileChanged == false && this.Text != "doc1.txt*")
             {
                 mainTextArea.Clear();
+                this.Text = "doc1.txt";
             } else
             {
                 dynamic result = MessageBox.Show("Do you want to save changes to your text?", "Text Editor",
@@ -60,10 +60,11 @@ namespace textEditor
                 {
                     
                     mainTextArea.Clear();
+                    fileChanged = false;
+                    this.Text = "doc1.txt";
                 }
             }
-            fileChanged = false;
-            this.Text = "doc1.txt";
+            
         }
         
 
@@ -73,13 +74,15 @@ namespace textEditor
             openfile.Title = "Open file";
             if (openfile.ShowDialog() == DialogResult.OK)
             {
-                fileChanged = false;
+                
                 mainTextArea.Clear();
                 using (StreamReader sr = new StreamReader(openfile.FileName))
                 {
                     this.Text = openfile.SafeFileName + ".txt";
-                    openedFileName = openfile.FileName;
+                    openedFileName = this.Text;
+                    openedFilePath = openfile.FileName;
                     mainTextArea.Text = sr.ReadToEnd();
+                    fileChanged = false;
                     sr.Close();
                 }
             }
@@ -87,8 +90,8 @@ namespace textEditor
 
         private void saveToolStripButton_Click(object sender, EventArgs e)
         {
-            fileChanged = false;
-            if (this.Text == "doc1.txt")
+            
+            if (this.Text == "doc1.txt*")
             {
                 saveAsToolStripMenuItem.PerformClick();
                 
@@ -96,7 +99,7 @@ namespace textEditor
             {
 
                
-                File.WriteAllText(openedFileName, mainTextArea.Text);
+                File.WriteAllText(openedFilePath, mainTextArea.Text);
 
                 }
             
@@ -110,9 +113,10 @@ namespace textEditor
             savefile.Title = "Save file as";
             if (savefile.ShowDialog() == DialogResult.OK)
             {
-                fileChanged = false;
+                
                 StreamWriter txt = new StreamWriter(savefile.FileName);
                 txt.Write(mainTextArea.Text);
+                fileChanged = false;
                 txt.Close();
 
             }
@@ -168,6 +172,63 @@ namespace textEditor
         private void panel1_Paint(object sender, PaintEventArgs e)
         {
 
+        }
+
+        private void checkFileChanged()
+        {
+            // Checking if a file is open, if so - checking for changes in the file.
+            if (this.Text != "doc1.txt" && this.Text !="doc1.txt*")
+            {
+                using (StreamReader sr = new StreamReader(openedFilePath))
+                {
+
+                    if (mainTextArea.Text != sr.ReadToEnd())
+                    {
+                        fileChanged = true;
+                    } else
+                    {
+                        fileChanged = false;
+                    }
+
+                    sr.Close();
+                }
+            }
+            
+        }
+        private void mainTextArea_TextChanged(object sender, EventArgs e)
+        {
+            checkFileChanged();
+            if (fileChanged == true)
+            {
+                this.Text = openedFileName + "*";
+            }
+            else if (fileChanged == false && (this.Text != "doc1.txt" && this.Text != "doc1.txt*"))
+            {
+                this.Text = openedFileName;
+            }
+            else if (!String.IsNullOrWhiteSpace(mainTextArea.Text) && this.Text == "doc1.txt")
+            {
+                this.Text = "doc1.txt*";
+            }
+            if (String.IsNullOrWhiteSpace(mainTextArea.Text))
+            {
+                this.Text = "doc1.txt";
+            }
+           
+            charWithSpace.Text = "Char with space: " + mainTextArea.Text.Length.ToString();
+            charNoSpace.Text = "Char no space: " + mainTextArea.Text.Count(c => !Char.IsWhiteSpace(c)).ToString(); 
+            amountOfWords.Text = "Words: " + mainTextArea.Text.Split(' ').Count();
+            amountOfRows.Text = "Rows: " + mainTextArea.Lines.Count().ToString();
+        }
+
+        private void toolStrip2_ItemClicked(object sender, ToolStripItemClickedEventArgs e)
+        {
+
+        }
+
+        private void charWithSpace_Click(object sender, EventArgs e)
+        {
+           
         }
     }
 }
