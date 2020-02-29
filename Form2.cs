@@ -13,7 +13,8 @@ namespace textEditor
 {
     public partial class Form2 : Form
     {
-       // Form1 form1;
+        public static Form2 form2;
+        public static bool closeCancel = false;
         public Form2(Form1 form1)
         {
             InitializeComponent();
@@ -23,20 +24,34 @@ namespace textEditor
         private void button1_Click(object sender, EventArgs e)
         {
             Form1.form1.savePerformClick();
+            this.Hide();
         }
 
         private void button2_Click(object sender, EventArgs e)
         {
+          
+              
             Form1.form1.dontSaveClick();
             this.Hide();
+            
         }
 
-        private void button3_Click(object sender, EventArgs e)
+        public void button3_Click(object sender, EventArgs e)
         {
+            
+            closeCancel = true;
             this.Hide();
 
         }
 
-      
+        private void Form2_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            
+        }
+
+        private void panel2_Paint(object sender, PaintEventArgs e)
+        {
+
+        }
     }
 }

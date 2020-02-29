@@ -26,29 +26,85 @@ namespace textEditor
         public Form1()
         {
             InitializeComponent();
-            mainTextArea.AllowDrop = true;
-            mainTextArea.DragDrop += new DragEventHandler(mainTextArea_DragDrop);
-            form1 = this;
             
-
+            mainTextArea.AllowDrop = true;
+           
+            mainTextArea.DragDrop += new DragEventHandler(mainTextArea_DragDrop);
+           // mainTextArea.DragEnter += new DragEventHandler(mainTextArea_DragEnter);
+            form1 = this;
+       
         }
-        void mainTextArea_DragDrop(object sender, DragEventArgs e)
-        {
-            object filename = e.Data.GetData("FileDrop");
-            if (filename != null)
-            {
-                var list = filename as string[];
 
-                if (list != null && !string.IsNullOrWhiteSpace(list[0]))
-                {
-                    mainTextArea.Clear();
-                    mainTextArea.LoadFile(list[0], RichTextBoxStreamType.PlainText);
+      
+        void mainTextArea_DragDrop(object sender, DragEventArgs e)
+
+
+        {
+            {
+                if (e.Data.GetDataPresent(DataFormats.FileDrop)) { 
+                    string[] files = e.Data.GetData(DataFormats.FileDrop) as string[];
+                if (files.Length == 1) {
+                        if (Control.ModifierKeys == Keys.Control)
+                        {
+
+                            {
+                                //openedFileName = Path.GetFileName(files[0]);
+                                //openedFilePath = files[0];
+                                //this.Text = openedFileName;
+                                foreach (string name in files)
+
+                                    mainTextArea.AppendText(File.ReadAllText(name));
+
+
+                            }
+                        } else if (Control.ModifierKeys == Keys.Shift)
+                        {
+                            int cp = mainTextArea.GetCharIndexFromPosition(
+                          mainTextArea.PointToClient(Control.MousePosition));
+                            mainTextArea.SelectionStart = cp;
+                            mainTextArea.Refresh();
+                        } else
+                        {
+                            checkFileChanged();
+                              // Checking if file needs saving
+                            if (fileChanged == true || this.Text == "doc1.txt*")
+                            {
+                                Form2 f2 = new Form2(form1);
+                                f2.ShowDialog();
+                                if (fileChanged == false && Form2.closeCancel == false)
+                                {
+                                    this.Text = "doc1.txt";
+                                    mainTextArea.LoadFile(files[0], RichTextBoxStreamType.PlainText);
+                                }
+                                // checks if user clicked on cancel drag + drop action
+                                if (Form2.closeCancel == true)
+                                {
+                                    Form2.closeCancel = false;
+                                    return;
+                                }
+                                
+                            }
+                            else
+                            {
+                                this.Text = "doc1.txt";
+                                mainTextArea.LoadFile(files[0], RichTextBoxStreamType.PlainText);
+                            }
+                        }
+
+                        }
+                    else
+                    {
+                        MessageBox.Show("Please input 1 file at a time");
+                    }
+                }
+              
                 }
 
             }
-        }
 
-        private void newToolStripButton_Click(object sender, EventArgs e)
+        
+                   
+            private void newToolStripButton_Click(object sender, EventArgs e)
         {
             checkFileChanged();
 
@@ -57,6 +113,8 @@ namespace textEditor
             {
                 mainTextArea.Clear();
                 this.Text = "doc1.txt";
+                openedFileName = "doc1.txt";
+                openedFilePath = "";
             }
             else
             {
@@ -85,22 +143,29 @@ namespace textEditor
 
             private void openToolStripButton_Click(object sender, EventArgs e)
         {
-           /* checkFileChanged();
+            checkFileChanged();
 
-            if (fileChanged = true)
+            if (fileChanged == true || this.Text == "doc1.txt*")
             {
                 Form2 f2 = new Form2(form1);
                 f2.ShowDialog();
-            } */
-            OpenFileDialog openfile = new OpenFileDialog();
-            openfile.Title = "Open file";
+                if (fileChanged == false)
+                {
+                    openToolStripButton.PerformClick();
+                }
+            }
+            else
+            {
+                OpenFileDialog openfile = new OpenFileDialog();
+                openfile.Filter = "txt files (*.txt)|*.txt|All files (*.*)|*.*";
+                openfile.Title = "Open file";
                 if (openfile.ShowDialog() == DialogResult.OK)
                 {
 
                     mainTextArea.Clear();
                     using (StreamReader sr = new StreamReader(openfile.FileName))
                     {
-                        this.Text = openfile.SafeFileName + ".txt";
+                        this.Text = openfile.SafeFileName;
                         openedFileName = this.Text;
                         openedFilePath = openfile.FileName;
                         mainTextArea.Text = sr.ReadToEnd();
@@ -108,6 +173,7 @@ namespace textEditor
                         sr.Close();
                     }
                 }
+            }
             
         }
 
@@ -123,6 +189,7 @@ namespace textEditor
 
                
                 File.WriteAllText(openedFilePath, mainTextArea.Text);
+                this.Text = openedFileName;
 
                 }
             
@@ -133,6 +200,7 @@ namespace textEditor
         private void saveAsToolStripMenuItem_Click(object sender, EventArgs e)
         {
             SaveFileDialog savefile = new SaveFileDialog();
+            savefile.Filter = "txt files (*.txt)|*.txt|All files (*.*)|*.*";
             savefile.Title = "Save file as";
             if (savefile.ShowDialog() == DialogResult.OK)
             {
@@ -141,7 +209,7 @@ namespace textEditor
                 FileInfo t = new FileInfo(savefile.FileName); // in order to get name without full path
                 txt.Write(mainTextArea.Text);
                 fileChanged = false;
-                this.Text = t.Name + ".txt";
+                this.Text = t.Name;
                 openedFileName = this.Text;
                 openedFilePath = savefile.FileName;
                 
@@ -153,7 +221,7 @@ namespace textEditor
         // used to make method accesable in other form
         public void savePerformClick()
         {
-            saveAsToolStripMenuItem.PerformClick();
+            saveToolStripMenuItem.PerformClick();
         }
 
         // used to make method accesable in other form
@@ -235,6 +303,7 @@ namespace textEditor
         }
         private void mainTextArea_TextChanged(object sender, EventArgs e)
         {
+           
             checkFileChanged();
             if (fileChanged == true)
             {
@@ -304,7 +373,16 @@ namespace textEditor
             
         }
 
-       
+        private void exitToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            newToolStripButton.PerformClick();
+        }
+
+        private void tableLayoutPanel1_Paint(object sender, PaintEventArgs e)
+        {
+
+        }
+
        
     }
 }
