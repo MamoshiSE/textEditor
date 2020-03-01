@@ -41,12 +41,21 @@ namespace textEditor
             
             closeCancel = true;
             this.Hide();
+            
 
         }
 
         private void Form2_Load(object sender, EventArgs e)
         {
             label1.Text = "Do you want to save the changes for " + Form1.openedFileName;
+        }
+
+   
+
+        private void Form2_FormClosed(object sender, FormClosedEventArgs e)
+        {
+            closeCancel = true;
+            this.Hide();
         }
     }
 }

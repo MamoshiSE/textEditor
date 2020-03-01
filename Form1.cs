@@ -103,14 +103,15 @@ namespace textEditor
             checkFileChanged();
 
             // If there is no changes or the document is empty, start new blank page.
-            if (fileChanged == false || this.Text == "doc1.txt")
+            if (fileChanged == false && this.Text != "doc1.txt*")
             {
+                fileChanged = false;
                 mainTextArea.Clear();
                 this.Text = "doc1.txt";
                 openedFileName = "doc1.txt";
                 openedFilePath = "";
             }
-            else
+            else if (this.Text != "doc1.txt")
             {
                 Form2 f2 = new Form2(form1);
                 f2.ShowDialog(); // Shows Form2
@@ -143,12 +144,20 @@ namespace textEditor
             {
                 Form2 f2 = new Form2(form1);
                 f2.ShowDialog();
-                if (fileChanged == false)
+               
+                if (fileChanged == false && Form2.closeCancel == false)
                 {
                     openToolStripButton.PerformClick();
+                    
+                } else if (Form2.closeCancel == true)
+                {
+                    Form2.closeCancel = false;
+                }
+                {
+
                 }
             }
-            else
+            else 
             {
                 OpenFileDialog openfile = new OpenFileDialog();
                 openfile.Filter = "txt files (*.txt)|*.txt|All files (*.*)|*.*";
@@ -264,7 +273,23 @@ namespace textEditor
 
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)
         {
-            newToolStripButton.PerformClick();
+
+
+
+            checkFileChanged();
+
+            if ((fileChanged == true || this.Text == "doc1.txt*") && this.Text != "doc1.txt")
+            {
+                Form2 f2 = new Form2(form1);
+                f2.ShowDialog();
+                if (Form2.closeCancel == true)
+                {
+                    e.Cancel = true;
+                    Form2.closeCancel = false;
+                    return;
+                    
+                }
+            }
         }
 
      
