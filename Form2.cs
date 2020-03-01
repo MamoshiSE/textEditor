@@ -44,14 +44,9 @@ namespace textEditor
 
         }
 
-        private void Form2_FormClosing(object sender, FormClosingEventArgs e)
+        private void Form2_Load(object sender, EventArgs e)
         {
-            
-        }
-
-        private void panel2_Paint(object sender, PaintEventArgs e)
-        {
-
+            label1.Text = "Do you want to save the changes for " + Form1.openedFileName;
         }
     }
 }

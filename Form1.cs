@@ -16,9 +16,8 @@ namespace textEditor
     public partial class Form1 : Form
     {
         String openedFilePath;
-        String openedFileName;
+        public static String openedFileName = "doc1.txt";
         public bool fileChanged = false;
-       
         public static Form1 form1;
 
 
@@ -27,43 +26,38 @@ namespace textEditor
         {
             InitializeComponent();
             
-            mainTextArea.AllowDrop = true;
-           
+            mainTextArea.AllowDrop = true;   
             mainTextArea.DragDrop += new DragEventHandler(mainTextArea_DragDrop);
-           // mainTextArea.DragEnter += new DragEventHandler(mainTextArea_DragEnter);
             form1 = this;
+            
        
         }
 
-      
-        void mainTextArea_DragDrop(object sender, DragEventArgs e)
+            void mainTextArea_DragDrop(object sender, DragEventArgs e)
 
 
         {
             {
-                if (e.Data.GetDataPresent(DataFormats.FileDrop)) { 
+                if (e.Data.GetDataPresent(DataFormats.FileDrop)) {  // check so file is dropped
                     string[] files = e.Data.GetData(DataFormats.FileDrop) as string[];
-                if (files.Length == 1) {
-                        if (Control.ModifierKeys == Keys.Control)
+                    
+                if (files.Length == 1) { // check so max 1 file
+                        if (Control.ModifierKeys == Keys.Control) // if control held down - add content to end of file
                         {
 
-                            {
-                                //openedFileName = Path.GetFileName(files[0]);
-                                //openedFilePath = files[0];
-                                //this.Text = openedFileName;
-                                foreach (string name in files)
-
-                                    mainTextArea.AppendText(File.ReadAllText(name));
+                            mainTextArea.Text += File.ReadAllText(files[0]);
+                            //openedFileName = Path.GetFileName(files[0]);
+                            //openedFilePath = files[0];
+                            //this.Text = openedFileName;
 
 
-                            }
-                        } else if (Control.ModifierKeys == Keys.Shift)
+
+                        } else if (Control.ModifierKeys == Keys.Shift) // if shift held down - add to position of cursor
                         {
-                            int cp = mainTextArea.GetCharIndexFromPosition(
-                          mainTextArea.PointToClient(Control.MousePosition));
-                            mainTextArea.SelectionStart = cp;
-                            mainTextArea.Refresh();
-                        } else
+
+                            mainTextArea.SelectedText += File.ReadAllText(files[0]);
+                            
+                        } else // if nothing is pressed replace page with new file (check for save first)
                         {
                             checkFileChanged();
                               // Checking if file needs saving
@@ -74,7 +68,7 @@ namespace textEditor
                                 if (fileChanged == false && Form2.closeCancel == false)
                                 {
                                     this.Text = "doc1.txt";
-                                    mainTextArea.LoadFile(files[0], RichTextBoxStreamType.PlainText);
+                                    mainTextArea.Text = File.ReadAllText(files[0]);
                                 }
                                 // checks if user clicked on cancel drag + drop action
                                 if (Form2.closeCancel == true)
@@ -87,7 +81,7 @@ namespace textEditor
                             else
                             {
                                 this.Text = "doc1.txt";
-                                mainTextArea.LoadFile(files[0], RichTextBoxStreamType.PlainText);
+                                mainTextArea.Text = File.ReadAllText(files[0]);
                             }
                         }
 
@@ -109,7 +103,7 @@ namespace textEditor
             checkFileChanged();
 
             // If there is no changes or the document is empty, start new blank page.
-            if (fileChanged == false && this.Text != "doc1.txt*")
+            if (fileChanged == false || this.Text == "doc1.txt")
             {
                 mainTextArea.Clear();
                 this.Text = "doc1.txt";
@@ -145,7 +139,7 @@ namespace textEditor
         {
             checkFileChanged();
 
-            if (fileChanged == true || this.Text == "doc1.txt*")
+            if ((fileChanged == true || this.Text == "doc1.txt*") && this.Text != "doc1.txt")
             {
                 Form2 f2 = new Form2(form1);
                 f2.ShowDialog();
@@ -180,7 +174,7 @@ namespace textEditor
         private void saveToolStripButton_Click(object sender, EventArgs e)
         {
             
-            if (this.Text == "doc1.txt*")
+            if (this.Text == "doc1.txt*" || this.Text == "doc1.txt")
             {
                 saveAsToolStripMenuItem.PerformClick();
                 
@@ -217,68 +211,6 @@ namespace textEditor
 
             }
         }
-
-        // used to make method accesable in other form
-        public void savePerformClick()
-        {
-            saveToolStripMenuItem.PerformClick();
-        }
-
-        // used to make method accesable in other form
-        public void dontSaveClick()
-        {
-            mainTextArea.Clear();
-            fileChanged = false;
-        }
-
-       
-
-        private void cutToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            mainTextArea.Cut();
-        }
-
-        private void copyToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            mainTextArea.Copy();
-        }
-
-        private void pasteToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            mainTextArea.Paste();
-        }
-
-        private void undoToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            mainTextArea.Undo();
-        }
-
-        private void redoToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            mainTextArea.Redo();
-        }
-
-        private void selectAllToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            mainTextArea.SelectAll();
-        }
-
-        private void newToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            newToolStripButton.PerformClick();
-        }
-
-        private void openToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            openToolStripButton.PerformClick();
-        }
-
-
-        private void saveToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            saveToolStripButton.PerformClick();
-        }
-
 
         private void checkFileChanged()
         {
@@ -378,11 +310,69 @@ namespace textEditor
             newToolStripButton.PerformClick();
         }
 
-        private void tableLayoutPanel1_Paint(object sender, PaintEventArgs e)
-        {
 
+        // used to make method accesable in other form
+        public void savePerformClick()
+        {
+            saveToolStripMenuItem.PerformClick();
         }
 
-       
+        // used to make method accesable in other form
+        public void dontSaveClick()
+        {
+            mainTextArea.Clear();
+            fileChanged = false;
+        }
+
+
+
+        private void cutToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            mainTextArea.Cut();
+        }
+
+        private void copyToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            mainTextArea.Copy();
+        }
+
+        private void pasteToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            mainTextArea.Paste();
+        }
+
+        private void undoToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            mainTextArea.Undo();
+        }
+
+        private void redoToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            mainTextArea.Redo();
+        }
+
+        private void selectAllToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            mainTextArea.SelectAll();
+        }
+
+        private void newToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            newToolStripButton.PerformClick();
+        }
+
+        private void openToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            openToolStripButton.PerformClick();
+        }
+
+
+        private void saveToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            saveToolStripButton.PerformClick();
+        }
+
+
+
     }
 }

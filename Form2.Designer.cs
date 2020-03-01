@@ -96,7 +96,7 @@
             this.panel2.Name = "panel2";
             this.panel2.Size = new System.Drawing.Size(314, 126);
             this.panel2.TabIndex = 1;
-            this.panel2.Paint += new System.Windows.Forms.PaintEventHandler(this.panel2_Paint);
+
             // 
             // label1
             // 
@@ -109,6 +109,7 @@
             this.label1.Size = new System.Drawing.Size(262, 16);
             this.label1.TabIndex = 0;
             this.label1.Text = "Do you want to change the saves for doc1?";
+
             // 
             // Form2
             // 
@@ -122,7 +123,8 @@
             this.ShowInTaskbar = false;
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "Text Editor";
-            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Form2_FormClosing);
+
+            this.Load += new System.EventHandler(this.Form2_Load);
             this.panel1.ResumeLayout(false);
             this.panel2.ResumeLayout(false);
             this.panel2.PerformLayout();
