@@ -15,7 +15,7 @@ namespace textEditor
    
     public partial class Form1 : Form
     {
-        String openedFilePath;
+        public static String openedFilePath;
         public static String openedFileName = "doc1.txt";
         public bool fileChanged = false;
         public static Form1 form1;

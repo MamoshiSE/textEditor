@@ -48,6 +48,11 @@ namespace textEditor
         private void Form2_Load(object sender, EventArgs e)
         {
             label1.Text = "Do you want to save the changes for " + Form1.openedFileName;
+            if (Form1.openedFilePath != null)
+            {
+                save.Text = "Save";
+            }
+           
         }
 
    

@@ -84,7 +84,7 @@
             this.save.Name = "save";
             this.save.Size = new System.Drawing.Size(75, 23);
             this.save.TabIndex = 0;
-            this.save.Text = "Save";
+            this.save.Text = "Save as";
             this.save.UseVisualStyleBackColor = false;
             this.save.Click += new System.EventHandler(this.button1_Click);
             // 
